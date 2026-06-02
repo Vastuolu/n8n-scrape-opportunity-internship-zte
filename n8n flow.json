@@ -1,0 +1,581 @@
+{
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        96,
+        832
+      ],
+      "id": "74430ccf-8d0c-4009-8df6-28bc28431a8b",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.data.status }}",
+              "operation": "notEqual",
+              "value2": "completed"
+            }
+          ]
+        },
+        "combineOperation": "any"
+      },
+      "id": "3d13acd5-b7a6-425e-8bdf-6f10a172bdd2",
+      "name": "Is Completed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1472,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { ...$json, retry: ($json.retry || 0) + 1 } }];"
+      },
+      "id": "937d3611-d388-4802-8b2e-a84087da008a",
+      "name": "Increase Retry",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.retry}}",
+              "value2": 10
+            }
+          ]
+        }
+      },
+      "id": "bca4073a-40a6-44dd-98d0-39f34e577034",
+      "name": "Retry < 10?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.data.status }}",
+              "operation": "notEqual",
+              "value2": "completed"
+            }
+          ]
+        }
+      },
+      "id": "0a17b4b6-9ccb-430c-91fc-46fcea220e94",
+      "name": "Is Completed?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        1088
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "return [{ json: { ...$json, retry: ($json.retry || 0) + 1 } }];"
+      },
+      "id": "9df52cb2-758a-401c-aa35-a49b736aa273",
+      "name": "Increase Retry1",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{$json.retry}}",
+              "value2": 10
+            }
+          ]
+        }
+      },
+      "id": "fff51a4a-05d1-4c8d-940a-991ee4a8e37c",
+      "name": "Retry < 10?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1776,
+        1312
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B7K09169L",
+          "mode": "list",
+          "cachedResultName": "n8n-signal"
+        },
+        "text": "==🏛️ *B2G Tender Alert — ZTE Indonesia*\n📅 {{ $now.toFormat('dd MMM yyyy, HH:mm') }} WIB  |  Source: {{ $json.data.data[0].data.data.data_source.platform }}\n🔍 Items reviewed: {{ $json.data.data[0].data.data.search_methodology.total_items_reviewed }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n📊 *PIPELINE SNAPSHOT*\n🔴 {{ $json.data.data[0].data.data.executive_summary.high_priority_opportunities }} High  |  🟡 {{ $json.data.data[0].data.data.executive_summary.medium_priority_opportunities }} Medium  |  🟢 {{ $json.data.data[0].data.data.executive_summary.low_priority_opportunities }} Low\n💰 Total Value: *Rp {{ $json.data.data[0].data.data.executive_summary.total_value_idr.toLocaleString('id-ID') }}*\n\n🔑 *Key Findings:*\n{{ $json.data.data[0].data.data.executive_summary.key_findings.map((f,i) => `${i+1}. ${f}`).join('\\n') }}\n\n📌 *Market Insights:*\n{{ $json.data.data[0].data.data.executive_summary.market_insights.map(m => `• ${m}`).join('\\n') }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n🎯 *TENDER OPPORTUNITIES*\n{{ $json.data.data[0].data.data.zte_relevant_opportunities.map(opp => {\n  const e = opp.priority === 'HIGH' ? '🔴' : opp.priority === 'MEDIUM' ? '🟡' : '🟢';\n  const budget = opp.budget?.idr ? `Rp ${Number(opp.budget.idr).toLocaleString('id-ID')} (~USD ${Number(opp.budget.usd_approx).toLocaleString()})` : 'Not disclosed';\n  const solutions = opp.zte_relevance?.applicable_solutions?.join(', ') || 'Not available';\n  const fit = opp.zte_relevance?.business_fit_rationale || opp.zte_relevance?.why_relevant || 'Not available';\n  const signals = opp.b2b_signals?.strategic_signal || 'Not available';\n  const url = opp.source_url || 'Not available';\n  return `${e} *${opp.title}*\n   🏢 ${opp.organization}\n   🏭 Sector: ${opp.sector}  |  🔄 Stage: ${opp.project_stage}\n   💰 Budget: ${budget}\n   ⏰ Timeline: ${opp.timeline}\n   📝 Scope: ${opp.scope}\n   📦 ZTE Solutions: ${solutions}\n   💡 Why it matters: ${fit}\n   📶 Signals: ${signals}\n   🔗 Source: ${url}`;\n}).join('\\n\\n─────────────────────\\n\\n') }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n💡 *RECOMMENDED ACTIONS*\n{{ $json.data.data[0].data.data.recommendations?.immediate_actions?.map((a,i) => `${i+1}. ${a}`).join('\\n') || $json.data.data[0].data.data.recommendations?.for_zte?.map((a,i) => `${i+1}. ${a}`).join('\\n') }}\n\n_ZTE Sales Intelligence Platform_",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1760,
+        784
+      ],
+      "id": "465c8b9e-b010-45b7-959c-4afb122ab973",
+      "name": "Slack: Send B2G Tender Report",
+      "webhookId": "61af94ee-ac59-46f7-bd13-0480fd8e2942",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "sFIQP1VvGlCtyfmn",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B7K09169L",
+          "mode": "list",
+          "cachedResultName": "n8n-signal"
+        },
+        "text": "==📡 *B2B Market Signal — ZTE Indonesia*\n📅 {{ $now.toFormat('dd MMM yyyy, HH:mm') }} WIB  |  {{ $json.data.data.extraction_metadata.total_articles_analyzed }} articles analyzed\n\n━━━━━━━━━━━━━━━━━━━━━━\n📊 *PIPELINE SNAPSHOT*\n\n🔴 Confirmed    {{ $json.data.data.executive_summary.signal_strength_distribution.confirmed_projects || 0 }}\n🟠 Procurement  {{ $json.data.data.executive_summary.signal_strength_distribution.procurement_stage || 0 }}\n🟡 Planning     {{ $json.data.data.executive_summary.signal_strength_distribution.planning_stage || 0 }}\n🟢 Early Signal {{ $json.data.data.executive_summary.signal_strength_distribution.early_signals || 0 }}\n\n━━━━━━━━━━━━━━━━━━━━━━\n🎯 *B2B OPPORTUNITIES*\n{{ \n(\n  $json.data?.data?.zte_relevant_opportunities ||\n  $json.data?.zte_relevant_opportunities ||\n  []\n).map(opp => {\n  const priority = (opp.priority || '').toLowerCase();\n  const e = priority === 'critical' ? '🔴 CRITICAL' : priority === 'high' ? '🟠 HIGH' : priority.includes('medium') ? '🟡 MEDIUM' : '🟢 LOW';\n  const stage = opp.b2b_signals?.decision_stage || '-';\n  const scope = opp.opportunity_description?.scope || '-';\n  const technologies = opp.b2b_signals?.technologies_required?.join(', ') || '-';\n  const solutions = opp.zte_relevance?.applicable_solutions?.join(', ') || '-';\n  const fit = opp.zte_relevance?.business_fit_rationale || '-';\n  return `${e} — *${opp.title || '-'}*\\n   🏢 Buyer: ${opp.buyer_profile?.buyer_name || '-'}\\n   🔄 Stage: ${stage}\\n   🌍 Scope: ${scope}\\n   🔧 Technologies: ${technologies}\\n   📦 ZTE Solutions: ${solutions}\\n   💡 Fit: ${fit}`;\n}).join('\\n\\n─────────────────────\\n\\n') || 'No opportunities found'\n}}\n\n━━━━━━━━━━━━━━━━━━━━━━\n⚡ *THIS WEEK FOR SALES*\n{{ $json.data.data.strategic_recommendations.immediate_actions.map((a,i) => `${i+1}. ${a}`).join('\\n') }}\n\n_ZTE Sales Intelligence Platform_",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1760,
+        1008
+      ],
+      "id": "a37f3782-0193-46c1-b916-8db6ddc19b76",
+      "name": "Slack: Send B2B Market Intelligence",
+      "webhookId": "61af94ee-ac59-46f7-bd13-0480fd8e2942",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "sFIQP1VvGlCtyfmn",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.data.status }}",
+              "operation": "notEqual",
+              "value2": "failed"
+            }
+          ]
+        }
+      },
+      "id": "252731d3-13f7-444d-8ebf-1db645974c2c",
+      "name": "Is Failed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        672
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B7K09169L",
+          "mode": "list",
+          "cachedResultName": "n8n-signal"
+        },
+        "text": "=B2G Scrape Failed!\nCauses: {{ $('Get Agent B2G Status').item.json.data.error }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1440,
+        880
+      ],
+      "id": "f7e96a39-5ec0-4d5a-889d-a2265c584a11",
+      "name": "Slack: Send Scrape Error",
+      "webhookId": "61af94ee-ac59-46f7-bd13-0480fd8e2942",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "sFIQP1VvGlCtyfmn",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.data.status }}",
+              "operation": "notEqual",
+              "value2": "failed"
+            }
+          ]
+        }
+      },
+      "id": "b7e7a132-6d52-406b-819b-97bc0164fbfc",
+      "name": "Is Failed?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 8,
+        "unit": "minutes"
+      },
+      "id": "707fa16a-642b-4d4f-81f8-60c0c2dc8e61",
+      "name": "Wait 8Mins",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        864,
+        672
+      ],
+      "webhookId": "d028ae0d-e323-44b8-83f1-bbccfc06d6e7"
+    },
+    {
+      "parameters": {
+        "amount": 8,
+        "unit": "minutes"
+      },
+      "id": "bb802067-861f-49dc-a504-2b4d1da183c8",
+      "name": "Wait 8 Mins",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        880,
+        1104
+      ],
+      "webhookId": "d028ae0d-e323-44b8-83f1-bbccfc06d6e7"
+    },
+    {
+      "parameters": {
+        "resource": "Agent",
+        "operation": "agentAsync",
+        "prompt": "You are an AI web exploration agent tasked with discovering B2B business opportunities and demand signals relevant to ZTE's business domains from TenderID.\n\nWebsite to explore:\nhttps://tenderid.com/\n\n---\n\n## OBJECTIVE\n\nIdentify and extract high-value B2B opportunities, enterprise projects, and procurement signals that may require telecom, network, or ICT solutions aligned with ZTE.\n\n---\n\n## SCOPE OF ANALYSIS\n\nFocus on opportunities related to:\n\n* Telecommunications infrastructure (4G/5G, BTS, fiber optic)\n* Network infrastructure & enterprise networking\n* Data centers & cloud infrastructure\n* Smart city & surveillance systems (CCTV, command center)\n* Government or enterprise digital transformation\n* Connectivity & internet infrastructure\n* IT systems & enterprise platforms\n* Network security & infrastructure\n\nAlso include **indirect signals**, such as:\n\n* Infrastructure upgrades\n* System modernization\n* Maintenance contracts indicating installed base\n* Planning or assessment projects indicating future demand\n\n---\n\n## EXTRACTION REQUIREMENTS\n\nYou must return output in the following JSON structure:\n\n[\n  {\n    \"data\": {\n      \"success\": true,\n      \"status\": \"completed\",\n      \"data\": {\n\n        \"data_source\": {\n          \"platform\": \"TenderID.com\",\n          \"url\": \"https://tenderid.com/\",\n          \"extraction_date\": \"<YYYY-MM-DD>\",\n          \"extraction_type\": \"B2B Opportunity Discovery\"\n        },\n\n        \"search_methodology\": {\n          \"keywords_searched\": [\"...\"],\n          \"pages_analyzed\": [\"...\"],\n          \"total_items_reviewed\": \"...\",\n          \"search_notes\": \"Explain exploration strategy and limitations\"\n        },\n\n        \"executive_summary\": {\n          \"total_opportunities_found\": 0,\n          \"high_priority_opportunities\": 0,\n          \"medium_priority_opportunities\": 0,\n          \"low_priority_opportunities\": 0,\n          \"total_value_idr\": 0,\n          \"key_findings\": [],\n          \"market_insights\": []\n        },\n\n        \"zte_relevant_opportunities\": [\n          {\n            \"priority\": \"HIGH | MEDIUM | LOW\",\n            \"opportunity_id\": \"...\",\n            \"title\": \"Full title — never truncated\",\n            \"organization\": \"...\",\n            \"sector\": \"...\",\n            \"source_url\": \"Direct URL to the individual tender or opportunity page — required, never null\",\n            \"budget\": {\n              \"idr\": 0,\n              \"usd_approx\": 0\n            },\n            \"category\": \"...\",\n            \"timeline\": \"Full timeline text — navigate to the detail page if the listing shows truncated text like 'Pengumuman Prak...'. Never truncated, never null.\",\n            \"project_stage\": \"...\",\n            \"scope\": \"Full scope description from the detail page — never null. If not explicitly stated, write a reasonable inference based on the title and category.\",\n\n            \"zte_relevance\": {\n              \"score\": \"HIGH | MEDIUM | LOW\",\n              \"applicable_solutions\": [\"List ZTE product lines that apply, e.g. FTTH, 5G RAN, Data Center Switch\"],\n              \"business_fit_rationale\": \"2-3 sentences explaining why this is relevant to ZTE — never null\",\n              \"revenue_potential\": \"High | Medium | Low\",\n              \"recommended_action\": \"...\"\n            },\n\n            \"b2b_signals\": {\n              \"buyer_type\": \"...\",\n              \"project_type\": \"...\",\n              \"decision_stage\": \"...\",\n              \"estimated_timeline\": \"...\",\n              \"budget_confirmed\": false,\n              \"technologies_required\": [\"List specific technologies or systems required\"],\n              \"geographic_scope\": [\"List regions or cities involved\"],\n              \"strategic_signal\": \"Explain why this indicates demand for ZTE solutions\"\n            }\n          }\n        ],\n\n        \"market_intelligence\": {\n          \"active_buyers\": [\n            {\n              \"organization\": \"...\",\n              \"industry\": \"...\",\n              \"active_opportunities\": 0,\n              \"procurement_areas\": [],\n              \"strategic_importance\": \"High | Medium | Low\"\n            }\n          ],\n\n          \"demand_trends\": {\n            \"infrastructure_upgrades\": \"...\",\n            \"new_deployments\": \"...\",\n            \"maintenance_contracts\": \"...\",\n            \"digital_transformation\": \"...\"\n          },\n\n          \"competitive_landscape\": \"...\",\n          \"barriers_to_entry\": []\n        },\n\n        \"recommendations\": {\n          \"immediate_actions\": [],\n          \"strategic_actions\": [],\n          \"market_entry_considerations\": []\n        },\n\n        \"data_quality_notes\": {\n          \"completeness\": \"...\",\n          \"accuracy\": \"...\",\n          \"limitations\": [],\n          \"refresh_frequency_recommended\": \"Weekly\"\n        }\n      }\n    }\n  }\n]\n\n---\n\n## DATA QUALITY RULES — STRICTLY FOLLOW THESE\n\n* **No null values.** Every field must be filled. If a value is not found, write `\"Not available\"` for strings, `0` for numbers, and `[]` for arrays.\n* **No truncated strings.** If a listing page shows truncated text (e.g. `\"Pengumuman Prak...\"`), navigate to the individual tender detail page and extract the full text before returning.\n* **source_url is mandatory.** For every opportunity, include the direct URL to that specific tender or opportunity page — not the homepage.\n* **scope is mandatory.** If the detail page does not explicitly state a scope, write a reasonable inference based on the title, category, and organization. Never leave it null or empty.\n* **timeline must be complete.** Always navigate to the detail page to get the full timeline. Never copy truncated display text from listing pages.\n* **Every opportunity must follow the exact schema above.** No extra fields, no missing fields, no structural variations between opportunities.\n\n---\n\n## IMPORTANT INSTRUCTIONS\n\n* Focus on **business opportunities and demand signals**, not just formal tenders.\n* Include borderline opportunities if ICT, networking, or digital systems may be involved.\n* Prefer **high recall** over strict filtering — AI scoring will be done later.\n* Do NOT summarize the website.\n* Return only structured JSON in the format above.\n\n---\n\n## GOAL\n\nYour output will be used by a downstream AI system for scoring and prioritization.\n\nYour priority is:\n→ maximize discovery\n→ capture meaningful B2B signals\n→ maintain structured, complete, high-quality data — no nulls, no truncations\n\n---\n\nEnd of instructions.",
+        "specifyUrls": true,
+        "urls": "https://tenderid.com/tender-public",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        592,
+        672
+      ],
+      "id": "2a095369-0717-4ab1-bcc7-2361cafc70d0",
+      "name": "Agent (Async) - B2G Scrape",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "i6c4YTY8lOkV8YBl",
+          "name": "Firecrawl account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Agent",
+        "operation": "agentAsync",
+        "prompt": "You are analyzing multiple news and web sources as signals of B2B business opportunities \nin the telecommunications, ICT, and digital infrastructure sectors.\n\nMaintain STRICT adherence to the JSON output structure provided below.\nDo NOT add, remove, or rename any fields.\n\n---\n\n## OBJECTIVE\n\nReinterpret all extracted information as:\n\n→ B2B business opportunities  \n→ Demand signals for telecom, ICT, and digital infrastructure  \n\nNOT as general news summaries.\n\n---\n\n## DATA SOURCES\n\nYou may analyze content from sources such as:\n- Bisnis.com (telekomunikasi)\n- Kontan.co.id (industri telekomunikasi)\n- CNBC Indonesia (tech)\n\nTreat all content as **market intelligence signals**, not articles to summarize.\n\n---\n\n## REINTERPRETATION RULES\n\nFor every relevant finding:\n\n- Treat it as a **business opportunity signal**\n- Extract signals related to:\n  - Infrastructure expansion\n  - Network deployment (4G/5G/BTS)\n  - Fiber & broadband rollout\n  - Data centers & cloud\n  - AI & digital platforms\n  - Smart city / IoT\n  - Maintenance / upgrade cycles\n\nAvoid generic summaries.\n\n---\n\n## ZTE CONTEXT\n\nZTE operates in:\n\n- Telecommunications infrastructure (5G, LTE, BTS, fiber)\n- Enterprise networking\n- Data centers and cloud\n- Smart city & surveillance\n- ICT and digital infrastructure\n\nAll analysis must be framed relative to **ZTE business relevance**.\n\n---\n\n## FIELD INTERPRETATION RULES\n\n### zte_relevant_opportunities\n- Represents **B2B opportunity signals**\n- Not limited to tenders\n\n---\n\n### zte_relevance\nEvaluate based on:\n\n- Business fit\n- Revenue potential\n- Strategic importance\n- Alignment with ZTE portfolio\n\n---\n\n### b2b_signals (CRITICAL)\n\nEach opportunity MUST include:\n\n- buyer_type → Government / Enterprise / SOE\n- project_type → Infrastructure / IT System / Network / Upgrade / Maintenance\n- decision_stage → Planning / Procurement / Expansion / Implementation\n- strategic_importance → Low / Medium / High\n- technologies_required → list\n- geographic_scope → list\n\n---\n\n### executive_summary\n\nFocus on:\n\n- Market demand trends\n- Buyer concentration\n- Opportunity clusters\n- Strategic sectors\n\nNOT article summaries.\n\n---\n\n## PRIORITIZATION LOGIC\n\nAssign priority:\n\n- Critical → direct, large-scale, confirmed infrastructure investment\n- High → strong signal with near-term procurement likelihood\n- Medium → emerging or indirect opportunity\n- Low → weak or unclear signal\n\n---\n\n## IMPORTANT RULES\n\n- Output MUST be valid JSON\n- DO NOT include explanations outside JSON\n- DO NOT summarize entire articles\n- DO NOT hallucinate data\n- Prefer broader inclusion over missing key signals\n\n---\n\n## OUTPUT STRUCTURE (STRICT)\n\n{\n  \"extraction_metadata\": {\n    \"extraction_date\": \"\",\n    \"sources_analyzed\": [],\n    \"total_articles_found\": 0,\n    \"total_articles_analyzed\": 0,\n    \"analysis_scope\": \"B2B Opportunity Intelligence - Telecom, ICT & Digital Infrastructure\",\n    \"focus_vertical\": \"ZTE Core Business Opportunities\"\n  },\n  \"executive_summary\": {\n    \"market_overview\": \"\",\n    \"key_demand_trends\": [],\n    \"buyer_concentration\": {\n      \"SOE_dominance\": \"\",\n      \"active_private_operators\": [],\n      \"government_agencies\": [],\n      \"emerging_segments\": \"\"\n    },\n    \"signal_strength_distribution\": {\n      \"confirmed_projects\": \"\",\n      \"procurement_stage\": \"\",\n      \"planning_stage\": \"\",\n      \"early_signals\": \"\"\n    },\n    \"zte_strategic_opportunities\": {\n      \"core_strengths_aligned\": \"\",\n      \"high_priority_opportunities\": [],\n      \"competitive_positioning\": \"\"\n    },\n    \"market_risks\": [],\n    \"temporal_outlook\": \"\"\n  },\n  \"zte_relevant_opportunities\": [\n    {\n      \"opportunity_id\": \"\",\n      \"title\": \"\",\n      \"priority\": \"\",\n      \"source_intelligence\": {\n        \"source_name\": \"\",\n        \"source_url\": \"\",\n        \"publication_date\": \"\",\n        \"signal_type\": \"News Intelligence - Market Demand Signal\"\n      },\n      \"opportunity_description\": {\n        \"summary\": \"\",\n        \"scope\": \"\",\n        \"strategic_context\": \"\"\n      },\n      \"buyer_profile\": {\n        \"buyer_name\": \"\",\n        \"buyer_type\": \"\",\n        \"buyer_segment\": \"\",\n        \"buyer_scale\": \"\"\n      },\n      \"b2b_signals\": {\n        \"project_type\": \"\",\n        \"decision_stage\": \"\",\n        \"budget_indication\": \"\",\n        \"technologies_required\": [],\n        \"geographic_scope\": [],\n        \"strategic_importance\": \"\"\n      },\n      \"zte_relevance\": {\n        \"relevance_score\": \"\",\n        \"applicable_solutions\": [],\n        \"business_fit_rationale\": \"\",\n        \"revenue_potential\": \"\",\n        \"strategic_value\": \"\"\n      },\n      \"opportunity_details\": {\n        \"infrastructure_type\": \"\",\n        \"deployment_scale\": \"\",\n        \"timeline_indication\": \"\",\n        \"competition_level\": \"\",\n        \"procurement_model\": \"\"\n      },\n      \"next_actions\": {\n        \"recommended_engagement\": \"\",\n        \"information_gaps\": [],\n        \"follow_up_priority\": \"\"\n      }\n    }\n  ],\n  \"market_intelligence\": {\n    \"sector_trends\": {\n      \"primary_drivers\": [],\n      \"investment_climate\": \"\",\n      \"regulatory_environment\": \"\",\n      \"technology_adoption_pace\": \"\"\n    },\n    \"competitive_landscape\": {\n      \"major_buyers\": [],\n      \"procurement_patterns\": \"\",\n      \"vendor_competition\": \"\",\n      \"differentiation_factors\": \"\"\n    },\n    \"opportunity_pipeline\": {\n      \"immediate_2026\": [],\n      \"near_term_2027\": [],\n      \"medium_term_2028_2029\": []\n    },\n    \"risk_factors\": []\n  },\n  \"strategic_recommendations\": {\n    \"immediate_actions\": [],\n    \"relationship_priorities\": [],\n    \"capability_positioning\": [],\n    \"intelligence_gaps_to_fill\": []\n  }\n}\n\n---\n\n## GOAL\n\nYour output will be used for:\n\n→ AI scoring  \n→ strategic planning  \n→ business development  \n\nFocus on:\n\n→ signal detection  \n→ opportunity framing  \n→ business relevance  \n\nEnd of instructions.",
+        "specifyUrls": true,
+        "urls": "https://teknologi.bisnis.com/telekomunikasi\nhttps://www.kontan.co.id/tag/industri-telekomunikasi\nhttps://www.cnbcindonesia.com/tech",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        592,
+        1088
+      ],
+      "id": "9a6f5839-11b5-4ba8-8b93-502f1b3154d6",
+      "name": "Agent (Async) - B2B Scrape",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "i6c4YTY8lOkV8YBl",
+          "name": "Firecrawl account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Agent",
+        "operation": "getAgentStatus",
+        "agentId": "={{ $('Agent (Async) - B2G Scrape').item.json.data.id }}",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        672
+      ],
+      "id": "ae2396d7-c0d9-43ab-8cdf-203aef36fb6e",
+      "name": "Get Agent B2G Status",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "i6c4YTY8lOkV8YBl",
+          "name": "Firecrawl account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "Agent",
+        "operation": "getAgentStatus",
+        "agentId": "={{ $('Agent (Async) - B2B Scrape').item.json.data.id }}",
+        "requestOptions": {}
+      },
+      "type": "@mendable/n8n-nodes-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        1104
+      ],
+      "id": "39e6b483-3f9e-4b74-82ec-cb4912b1d78c",
+      "name": "Get Agent B2B Status",
+      "credentials": {
+        "firecrawlApi": {
+          "id": "i6c4YTY8lOkV8YBl",
+          "name": "Firecrawl account 2"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Agent (Async) - B2G Scrape",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Agent (Async) - B2B Scrape",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Completed?": {
+      "main": [
+        [
+          {
+            "node": "Increase Retry",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack: Send B2G Tender Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increase Retry": {
+      "main": [
+        [
+          {
+            "node": "Retry < 10?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry < 10?": {
+      "main": [
+        [
+          {
+            "node": "Wait 8Mins",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Is Completed?1": {
+      "main": [
+        [
+          {
+            "node": "Increase Retry1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack: Send B2B Market Intelligence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Increase Retry1": {
+      "main": [
+        [
+          {
+            "node": "Retry < 10?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retry < 10?1": {
+      "main": [
+        [
+          {
+            "node": "Wait 8 Mins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Failed?": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack: Send Scrape Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Failed?1": {
+      "main": [
+        [
+          {
+            "node": "Is Completed?1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack: Send Scrape Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 8Mins": {
+      "main": [
+        [
+          {
+            "node": "Get Agent B2G Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 8 Mins": {
+      "main": [
+        [
+          {
+            "node": "Get Agent B2B Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent (Async) - B2G Scrape": {
+      "main": [
+        [
+          {
+            "node": "Wait 8Mins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent (Async) - B2B Scrape": {
+      "main": [
+        [
+          {
+            "node": "Wait 8 Mins",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Agent B2G Status": {
+      "main": [
+        [
+          {
+            "node": "Is Failed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Agent B2B Status": {
+      "main": [
+        [
+          {
+            "node": "Is Failed?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5e63e29409f3d004933cd71be66a262a8726652bd2bfabf75e27971c0b51d5f9"
+  }
+}
