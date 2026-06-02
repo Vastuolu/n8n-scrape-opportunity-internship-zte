@@ -126,7 +126,6 @@ Indonesia telecom market shows strong demand...
 
 ```
 FIRECRAWL_API_KEY=your_api_key
-SLACK_BOT_TOKEN=xoxb-xxxxx
 ```
 
 ---
@@ -192,9 +191,3 @@ Fix:
 - Competitive monitoring
 - Strategic planning support
 - Lead generation (early signal detection)
-
----
-
-## 📌 License
-
-MIT License
