@@ -19,6 +19,8 @@ This project transforms raw web data into **actionable business intelligence**:
 
 ## ⚙️ Architecture
 
+<img width="1110" height="628" alt="image" src="https://github.com/user-attachments/assets/cfa6a1e1-601a-4fb0-a109-c286a63e7980" />
+
 ```
 Trigger
   ├── B2G Flow (Tender Intelligence)
