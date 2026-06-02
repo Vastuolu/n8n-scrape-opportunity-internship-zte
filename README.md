@@ -155,35 +155,6 @@ FIRECRAWL_API_KEY=your_api_key
 
 ---
 
-### Slack Formatting
-
-```
-{{ $json.zte_relevant_opportunities.map(...) }}
-```
-
-Tip:
-- Always add fallback (`|| '-'`)
-- Avoid undefined → causes `null`
-
----
-
-## ⚠️ Common Issues
-
-### ❌ Slack shows `null`
-Fix:
-```
-$json.data?.data?.zte_relevant_opportunities || []
-```
-
----
-
-### ❌ Firecrawl stuck in "running"
-Fix:
-- Increase wait time
-- Check retry logic
-
----
-
 ## 🎯 Use Cases
 
 - Telecom vendor sales intelligence
